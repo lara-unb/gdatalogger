@@ -10,6 +10,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <sys/types.h> 
 #include <unistd.h>
@@ -45,8 +46,6 @@ int gDataLogger_Init(PGDATALOGGER pgDataLogger, char *filename, char *dirname)
 	int first = 0;
 #if DATALOGGER_COMPILE_FOR_XENOMAI
 	int err;
-#else
-	int status = 0;
 #endif
 
 	/* GQueue */
@@ -58,7 +57,6 @@ int gDataLogger_Init(PGDATALOGGER pgDataLogger, char *filename, char *dirname)
 			pgDataLogger->Variables[i].GMatlabDataFileIndex = 0;
 			pgDataLogger->Variables[i].Nc = 1;
 			pgDataLogger->Variables[i].Nr = 1;
-            pgDataLogger->Variables[i].HasBeenWritten = 0;
 		}
 		pgDataLogger->m_NumberOfVariables = 0;
 	}
@@ -143,16 +141,12 @@ int gDataLogger_Init(PGDATALOGGER pgDataLogger, char *filename, char *dirname)
 		return FALSE;
 	} 
 */	/* Set the size of the SHM to be the size of the struct. */
-	status = ftruncate(gDataLoggerIPC_SHM_fd, sizeof(GDATALOGGERIPC_SHM));
+	ftruncate(gDataLoggerIPC_SHM_fd, sizeof(GDATALOGGERIPC_SHM));
 
 	/* Connect the conf pointer to set to the shared memory area, with desired permissions */
-	if((pgDataLoggerIPC_SHM =  mmap(0, sizeof(GDATALOGGERIPC_SHM), (PROT_READ | PROT_WRITE), MAP_SHARED, gDataLoggerIPC_SHM_fd, 0)) == MAP_FAILED) {
+	if((pgDataLoggerIPC_SHM = (GDATALOGGERIPC_SHM*) mmap(NULL, sizeof(GDATALOGGERIPC_SHM), (PROT_READ | PROT_WRITE), MAP_SHARED, gDataLoggerIPC_SHM_fd, 0)) == MAP_FAILED) {
 		return FALSE;
 	}
-
-	/* Set permission so all can read/write to shared memory */
-    status = fchmod(gDataLoggerIPC_SHM_fd, (S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IWGRP|S_IXGRP|S_IROTH|S_IWOTH|S_IXOTH));
-
 #endif
 	
 	if(first){
@@ -213,9 +207,6 @@ int gDataLogger_InsertVariable(PGDATALOGGER pgDataLogger, char *varname, double 
 	if(varindex<0){
 		return(FALSE);
 	}
-
-    if(pgDataLogger->Variables[varindex].HasBeenWritten == 1) pgDataLogger->Variables[varindex].HasBeenWritten = 2; // Second write
-    if(pgDataLogger->Variables[varindex].HasBeenWritten == 0) pgDataLogger->Variables[varindex].HasBeenWritten = 1; // First write (1 data point)
 
 	/* Insere o conteudo */
 	for(nr=0;nr<pgDataLogger->Variables[varindex].Nr;++nr){
@@ -363,26 +354,11 @@ int gDataLogger_Close(PGDATALOGGER pgDataLogger)
 {
 	int nvar,datasize;
 	double v;
-    double *value;
 	char matvarname[70];
 
 	/* Garante salvar ultimos dados inseridos: */
 	if(pgDataLogger!=NULL){
 		gDataLogger_MatfileUpdate(pgDataLogger);
-
-		/* Se for um unico escalar, trata de forma especial: */
-        for(nvar=0;nvar<pgDataLogger->m_NumberOfVariables;++nvar){
-            if((pgDataLogger->Variables[nvar].Nc == 1)&&(pgDataLogger->Variables[nvar].Nr == 1)){
-                    if(pgDataLogger->Variables[nvar].HasBeenWritten == 1){
-                        value = (double *) malloc(sizeof(double));
-                        value[0] = pgDataLogger->Variables[nvar].CircularQueue[0];
-                        sprintf(matvarname,"%s_%li_%li",pgDataLogger->Variables[nvar].VariableName, (long int)0, (long int)0);
-                        gMATLABDataFile_SaveVector(&pgDataLogger->GMatlabDataFileConfig, matvarname, value, 1);
-                        free(value);
-                        pgDataLogger->Variables[nvar].GMatlabDataFileIndex = 1;
-                    }
-            }
-        }
 
 		/* Cria variaveis que indicam o numero de cada variavel salva: */
 		for(nvar=0;nvar<pgDataLogger->m_NumberOfVariables;++nvar){

@@ -65,7 +65,7 @@ if(gQUEUE_RequestReadIndex(&gQueueControlBuffer, QUEUE_READ_GATE_0, &Index)){
 
 */
 
-/* Prototypes: */
+// Prototypes:
 int gQUEUE_Init(PGQUEUECONTROL pQueueControl, int Size, int NReaders);
 int gQUEUE_GetReadIndex(PGQUEUECONTROL pQueueControl, int NReader, int* Index, int IndexHorizon);
 int gQUEUE_GetWriteIndex(PGQUEUECONTROL pQueueControl, int* Index, int IndexHorizon);

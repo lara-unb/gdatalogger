@@ -19,7 +19,7 @@ typedef struct{
 int gMATLABDataFile_OpenWrite(PGMATLABDATAFILECONFIG pGMatlabDataFileConfig, char *filename, char *dirname);
 int gMATLABDataFile_OpenRead(PGMATLABDATAFILECONFIG pGMatlabDataFileConfig, char *filename, char *dirname);
 void gMATLABDataFile_Close(PGMATLABDATAFILECONFIG pGMatlabDataFileConfig);
-int gMATLABDataFile_SaveVector(PGMATLABDATAFILECONFIG pGMatlabDataFileConfig, const char *varname, double *v, long nlin);
-int gMATLABDataFile_SaveMatrix(PGMATLABDATAFILECONFIG pGMatlabDataFileConfig, const char *varname, double **m, long nlin, long ncol);
+int gMATLABDataFile_SaveVector(PGMATLABDATAFILECONFIG pGMatlabDataFileConfig, const char *varname, double *v, uint32_t nlin);
+int gMATLABDataFile_SaveMatrix(PGMATLABDATAFILECONFIG pGMatlabDataFileConfig, const char *varname, double **m, uint32_t nlin, uint32_t ncol);
 
 #endif

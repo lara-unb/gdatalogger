@@ -7,19 +7,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 #include "gmatlabdatafile.h"
 
 typedef struct{
-	long type;
-	long mrows;
-	long ncols;
-	long imagf;
-	long namlen;
+	uint32_t type;
+	uint32_t mrows;
+	uint32_t ncols;
+	uint32_t imagf;
+	uint32_t namlen;
 } MATLAB_DATAHEAD, *PMATLAB_DATAHEAD;
 
 int gMATLABDataFile_OpenWrite(PGMATLABDATAFILECONFIG pGMatlabDataFileConfig, char *filename, char *dirname)
 {
+	//sprintf(pGMatlabDataFileConfig->FileName,"");
 	pGMatlabDataFileConfig->FileName[0] = '\0';
 	if(dirname!=NULL)
 		sprintf(pGMatlabDataFileConfig->FileName,"%s",dirname);
@@ -27,8 +29,16 @@ int gMATLABDataFile_OpenWrite(PGMATLABDATAFILECONFIG pGMatlabDataFileConfig, cha
 	pGMatlabDataFileConfig->FlagStillNotSaved = TRUE;
 
 	pGMatlabDataFileConfig->fp = fopen(pGMatlabDataFileConfig->FileName, "w");
+/*	pGMatlabDataFileConfig->fp = CreateFile(pGMatlabDataFileConfig->FileName,
+                        GENERIC_WRITE,
+                        0,
+                        NULL,
+                        CREATE_ALWAYS,
+                        FILE_ATTRIBUTE_NORMAL,
+                        NULL); */
 	if(pGMatlabDataFileConfig->fp==NULL){
 		printf("\n pGMatlabDataFileConfig->fp==NULL: %s",pGMatlabDataFileConfig->FileName);
+//		MessageBoxLastError();
 		return FALSE;
 	}
 	rewind(pGMatlabDataFileConfig->fp);
@@ -39,14 +49,24 @@ int gMATLABDataFile_OpenWrite(PGMATLABDATAFILECONFIG pGMatlabDataFileConfig, cha
 
 int gMATLABDataFile_OpenRead(PGMATLABDATAFILECONFIG pGMatlabDataFileConfig, char *filename, char *dirname)
 {
+	//sprintf(pGMatlabDataFileConfig->FileName,"");
 	pGMatlabDataFileConfig->FileName[0] = '\0';
 	if(dirname!=NULL)
 		sprintf(pGMatlabDataFileConfig->FileName,"%s",dirname);
+		
 	strcat(pGMatlabDataFileConfig->FileName,filename);
 	pGMatlabDataFileConfig->FlagStillNotSaved = TRUE;
 
 	pGMatlabDataFileConfig->fp = fopen(pGMatlabDataFileConfig->FileName, "r");
-	if(pGMatlabDataFileConfig->fp==NULL){
+/*	pGMatlabDataFileConfig->fp = CreateFile(pGMatlabDataFileConfig->FileName,
+                        GENERIC_READ,
+                        0,
+                        NULL,
+                        OPEN_EXISTING,
+                        FILE_ATTRIBUTE_NORMAL,
+                        NULL);
+*/	if(pGMatlabDataFileConfig->fp==NULL){
+//		MessageBoxLastError();
 		return FALSE;
 	}
 	rewind(pGMatlabDataFileConfig->fp);
@@ -61,25 +81,28 @@ void gMATLABDataFile_Close(PGMATLABDATAFILECONFIG pGMatlabDataFileConfig)
 
 }
 
-int gMATLABDataFile_SaveVector(PGMATLABDATAFILECONFIG pGMatlabDataFileConfig, const char *varname, double *v, long nlin)
+int gMATLABDataFile_SaveVector(PGMATLABDATAFILECONFIG pGMatlabDataFileConfig, const char *varname, double *v, uint32_t nlin)
 {
 	MATLAB_DATAHEAD DataHead;
 
-	DataHead.type  = (long)(0);		
-	DataHead.mrows = (long)(nlin);	
-	DataHead.ncols = (long)(1);
-	DataHead.imagf = (long)(0);
-	DataHead.namlen = (long)(strlen(varname)+1);
+	DataHead.type  = (uint32_t)(0);		// Double.
+	DataHead.mrows = (uint32_t)(nlin);	
+	DataHead.ncols = (uint32_t)(1);
+	DataHead.imagf = (uint32_t)(0);
+	DataHead.namlen = (uint32_t)(strlen(varname)+1);
 
 	if(! fwrite(&DataHead, sizeof(MATLAB_DATAHEAD), 1, pGMatlabDataFileConfig->fp) ){
+//		MessageBoxLastError();
 		return FALSE;
 	}
 
 	if(! fwrite(varname, sizeof(char), (strlen(varname)+1), pGMatlabDataFileConfig->fp)){
+//		MessageBoxLastError();
 		return FALSE;
 	}
 
 	if(! fwrite(v, sizeof(double), nlin, pGMatlabDataFileConfig->fp)){
+//		MessageBoxLastError();
 		return FALSE;
 	}
 
@@ -89,23 +112,25 @@ int gMATLABDataFile_SaveVector(PGMATLABDATAFILECONFIG pGMatlabDataFileConfig, co
 
 }
 
-int gMATLABDataFile_SaveMatrix(PGMATLABDATAFILECONFIG pGMatlabDataFileConfig, const char *varname, double **m, long nlin, long ncol)
+int gMATLABDataFile_SaveMatrix(PGMATLABDATAFILECONFIG pGMatlabDataFileConfig, const char *varname, double **m, uint32_t nlin, uint32_t ncol)
 {
 	MATLAB_DATAHEAD DataHead;
-	int nl,nc;
+	uint32_t nl,nc;
 	double *vcol;
 
-	DataHead.type  = (long)(0);		
-	DataHead.mrows = (long)(nlin);	
-	DataHead.ncols = (long)(ncol);
-	DataHead.imagf = (long)(0);
-	DataHead.namlen = (long)(strlen(varname)+1);
+	DataHead.type  = (uint32_t)(0);		// Double.
+	DataHead.mrows = (uint32_t)(nlin);	
+	DataHead.ncols = (uint32_t)(ncol);
+	DataHead.imagf = (uint32_t)(0);
+	DataHead.namlen = (uint32_t)(strlen(varname)+1);
 
 	if(! fwrite(&DataHead, sizeof(MATLAB_DATAHEAD), 1, pGMatlabDataFileConfig->fp) ){
+//		MessageBoxLastError();
 		return FALSE;
 	}
 
 	if(! fwrite(varname, sizeof(char), (strlen(varname)+1), pGMatlabDataFileConfig->fp)){
+//		MessageBoxLastError();
 		return FALSE;
 	}
 
@@ -116,6 +141,7 @@ int gMATLABDataFile_SaveMatrix(PGMATLABDATAFILECONFIG pGMatlabDataFileConfig, co
 			vcol[nl] = m[nl][nc];
 		}
 		if(! fwrite(vcol, sizeof(double), nlin, pGMatlabDataFileConfig->fp)){
+		//MessageBoxLastError();
 			free(vcol);
 			return FALSE;
 		}

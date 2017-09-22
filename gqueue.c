@@ -7,9 +7,9 @@
 #include <math.h>
 #include <stdio.h>
 
-/* GQueue */
+// GQueue
 #include "gqueue.h"
-
+// 
 #if GQUEUE_RTAI_SUPPORT
 	#define BEGIN_ATOMIC() 	rt_spl_lock(&pQueueControl->SPLAtomicAccess)
 	#define END_ATOMIC()	rt_spl_unlock(&pQueueControl->SPLAtomicAccess)
@@ -242,7 +242,7 @@ BEGIN_ATOMIC();
         pQueueControl->FlagStillNotWritten = FALSE;
         }
     else{
-		/* Increment write index in two positions to test if queue is full */
+		// Increment write index in two positions to test if queue is full
         pQueueControl->WriteIndex += 2; 
         gQUEUE_UnwrapWriteIndex(pQueueControl);
         
@@ -253,7 +253,7 @@ BEGIN_ATOMIC();
 			}
 		}
 
-		/* Decrement write index of one position to return to the correct state */
+		// Decrement write index of one position to return to the correct state
         pQueueControl->WriteIndex += pQueueControl->Size-1; 
         gQUEUE_UnwrapWriteIndex(pQueueControl);
 
