@@ -10,7 +10,7 @@
  extern "C" {
 #endif 
 
-#define GDATALOGGER_MAXVARIABLES 150
+#define GDATALOGGER_MAXVARIABLES 50
 
 typedef struct{
 	char VariableName[100];
@@ -20,7 +20,6 @@ typedef struct{
 	int Nc;
 	double *CircularQueue;
 	GQUEUECONTROL CircularQueueControl;
-    int HasBeenWritten;
 } GDATALOGGERVARIABLE,*PGDATALOGGERVARIABLE;
 
 typedef struct{
