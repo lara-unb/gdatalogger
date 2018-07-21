@@ -1,0 +1,3 @@
+#!/bin/sh
+rmmod rtai_lxrt
+rmmod rtai_hal
