@@ -1,4 +1,4 @@
-CC = arm-linux-gnueabi-gcc
+CC = gcc
 CCLAGS = -Wall
 
 SOURCES = $(wildcard *.c)
